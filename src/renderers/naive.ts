@@ -75,7 +75,8 @@ export class NaiveRenderer extends renderer.Renderer {
                     label: "naive vert shader",
                     code: shaders.naiveVertSrc
                 }),
-                buffers: [ renderer.vertexBufferLayout ]
+                buffers: [ renderer.vertexBufferLayout ],
+                entryPoint: "main" // needed to add this to run on the old version of Chrome on this machine, though still seems maybe not be hardware accelerating? Runs fine when I run it on a newer computer, but slow on this one
             },
             fragment: {
                 module: renderer.device.createShaderModule({
@@ -86,7 +87,8 @@ export class NaiveRenderer extends renderer.Renderer {
                     {
                         format: renderer.canvasFormat,
                     }
-                ]
+                ],
+                entryPoint: "main"
             }
         });
     }
