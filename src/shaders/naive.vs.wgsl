@@ -2,7 +2,7 @@
 
 // TODO-1.3: add a uniform variable here for camera uniforms (of type CameraUniforms)
 // make sure to use ${bindGroup_scene} for the group
-@group(${bindGroup_scene}) @binding(0) var<uniform> viewProjMat: mat4x4f; // TODO binding # right?
+@group(${bindGroup_scene}) @binding(0) var<uniform> camera: CameraUniforms; 
 
 
 @group(${bindGroup_model}) @binding(0) var<uniform> modelMat: mat4x4f;
@@ -29,7 +29,7 @@ fn main(in: VertexInput) -> VertexOutput
 
     var out: VertexOutput;
     // TODO-1.3: replace ??? with the view proj mat from your CameraUniforms uniform variable
-    out.fragPos = viewProjMat * modelPos; 
+    out.fragPos = camera.viewProjMat * modelPos; 
     out.pos = modelPos.xyz / modelPos.w;
     out.nor = in.nor;
     out.uv = in.uv;
