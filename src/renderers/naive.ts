@@ -18,6 +18,11 @@ export class NaiveRenderer extends renderer.Renderer {
             label: "scene uniforms bind group layout",
             entries: [
                 // TODO-1.2: add an entry for camera uniforms at binding 0, visible to only the vertex shader, and of type "uniform"
+                {
+                    binding: 0,
+                    visibility: GPUShaderStage.VERTEX,
+                    buffer: { type: "uniform" }
+                },
                 { // lightSet
                     binding: 1,
                     visibility: GPUShaderStage.FRAGMENT,
@@ -33,6 +38,10 @@ export class NaiveRenderer extends renderer.Renderer {
                 // TODO-1.2: add an entry for camera uniforms at binding 0
                 // you can access the camera using `this.camera`
                 // if you run into TypeScript errors, you're probably trying to upload the host buffer instead
+                {
+                    binding: 0,
+                    resource: { buffer: this.camera.uniformsBuffer }
+                },
                 {
                     binding: 1,
                     resource: { buffer: this.lights.lightSetStorageBuffer }
@@ -106,6 +115,10 @@ export class NaiveRenderer extends renderer.Renderer {
         renderPass.setPipeline(this.pipeline);
 
         // TODO-1.2: bind `this.sceneUniformsBindGroup` to index `shaders.constants.bindGroup_scene`
+        renderPass.setBindGroup(shaders.constants.bindGroup_scene, this.sceneUniformsBindGroup);
+        // TODO is that^ all?
+        // TODO have errors when trying to run at the moment but not sure if that's how it's meant to behave when the next part isn't done yet or if it's a compatibility issue w/ my old browser version on this computer.
+        //  assume may need to make shader code valid but if not working then will test on lab PCs (can't use remote lab since no Node or admin access to install it)
 
         this.scene.iterate(node => {
             renderPass.setBindGroup(shaders.constants.bindGroup_model, node.modelBindGroup);
