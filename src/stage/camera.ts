@@ -140,7 +140,7 @@ export class Camera {
 
         // TODO-1.1: upload `this.uniforms.buffer` (host side) to `this.uniformsBuffer` (device side)
         // check `lights.ts` for examples of using `device.queue.writeBuffer()`
-        device.queue.writeBuffer(this.uniformsBuffer, this.uniforms.buffer.byteLength, this.uniforms.buffer);
+        device.queue.writeBuffer(this.uniformsBuffer, 0, this.uniforms.buffer);
 
 
     }
