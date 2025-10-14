@@ -1,4 +1,5 @@
 // TODO-2: implement the light clustering compute shader
+// TODO I'm uncertain if this ought to be two passes? they describe it as such but not sure if we're doing any sort of excising of clusters between them?
 
 // ------------------------------------
 // Calculating cluster bounds:

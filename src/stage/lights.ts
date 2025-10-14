@@ -14,7 +14,7 @@ export class Lights {
     private camera: Camera;
 
     // numLights = 500;
-    numLights = 1; // lowering tempoarrily for a test
+    numLights = 1; // lowering temporarily for a test
     static readonly maxNumLights = 5000;
     static readonly numFloatsPerLight = 8; // vec3f is aligned at 16 byte boundaries
 
@@ -28,8 +28,20 @@ export class Lights {
     moveLightsComputeBindGroupLayout: GPUBindGroupLayout;
     moveLightsComputeBindGroup: GPUBindGroup;
     moveLightsComputePipeline: GPUComputePipeline;
-
+    
     // TODO-2: add layouts, pipelines, textures, etc. needed for light clustering here
+
+    
+    clusteringComputeBindGroupLayout: GPUBindGroupLayout;
+    clusteringComputeBindGroup: GPUBindGroup;
+    clusteringComputePipeline: GPUComputePipeline;
+    
+    static readonly numFloatsPerCluster = 8;
+    static readonly widthDiv = 16; // TODO values
+    static readonly heightDiv = 9;
+    static readonly depthDiv = 32;
+    clusterArray = new Float32Array(Lights.widthDiv * Lights.heightDiv * Lights.depthDiv * Lights.numFloatsPerCluster);
+    clusterDataBuffer: GPUBuffer;
 
     constructor(camera: Camera) {
         this.camera = camera;
@@ -93,8 +105,58 @@ export class Lights {
                 entryPoint: "main"
             }
         });
-
+        
         // TODO-2: initialize layouts, pipelines, textures, etc. needed for light clustering here
+        this.clusterDataBuffer = device.createBuffer({
+            label: "clusters",
+            size: 32 + this.lightsArray.byteLength, // TODO right size?
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        });
+        this.clusteringComputeBindGroupLayout = device.createBindGroupLayout({
+            label: "clustering compute bind group layout",
+            entries: [
+                { // lightSet
+                    binding: 0,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: { type: "storage" }
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: { type: "storage" }
+                }
+            ]
+        });
+
+        this.clusteringComputeBindGroup = device.createBindGroup({
+            label: "clustering compute bind group",
+            layout: this.moveLightsComputeBindGroupLayout,
+            entries: [
+                {
+                    binding: 0,
+                    resource: { buffer: this.lightSetStorageBuffer }
+                },
+                {
+                    binding: 1,
+                    resource: { buffer: this.clusterDataBuffer }
+                }
+            ]
+        });
+
+        this.clusteringComputePipeline = device.createComputePipeline({
+            label: "clustering compute pipeline",
+            layout: device.createPipelineLayout({
+                label: "clustering compute pipeline layout",
+                bindGroupLayouts: [ this.clusteringComputeBindGroupLayout ]
+            }),
+            compute: {
+                module: device.createShaderModule({
+                    label: "clustering compute shader",
+                    code: shaders.clusteringComputeSrc
+                }),
+                entryPoint: "main"
+            }
+        });
     }
 
     private populateLightsBuffer() {
@@ -114,6 +176,18 @@ export class Lights {
     doLightClustering(encoder: GPUCommandEncoder) {
         // TODO-2: run the light clustering compute pass(es) here
         // implementing clustering here allows for reusing the code in both Forward+ and Clustered Deferred
+
+        const computePass = encoder.beginComputePass();
+        computePass.setPipeline(this.clusteringComputePipeline);
+
+        computePass.setBindGroup(0, this.clusteringComputeBindGroup);
+
+        const workgroupCount = Math.ceil(Lights.widthDiv * Lights.heightDiv * Lights.depthDiv / shaders.constants.clustersWorkgroupSize); // TODO
+        computePass.dispatchWorkgroups(workgroupCount);
+
+        computePass.end();
+
+        // do I do a encoder.finish()? assume no since passed in?
     }
 
     // CHECKITOUT: this is where the light movement compute shader is dispatched from the host

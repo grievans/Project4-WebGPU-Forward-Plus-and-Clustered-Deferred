@@ -11,6 +11,20 @@ struct LightSet {
 }
 
 // TODO-2: you may want to create a ClusterSet struct similar to LightSet
+struct Cluster {
+    minPoint: vec4f,
+    maxPoint: vec4f
+}
+
+struct ClusterSet {
+    widthDiv: u32,
+    heightDiv: u32,
+    depthDiv: u32,
+    // TODO or just store number of clusters total?
+    // TODO near and far clip plane in here?
+    clusters: array<Cluster>
+
+}
 
 struct CameraUniforms {
     // TODO-1.3: add an entry for the view proj mat (of type mat4x4f)
