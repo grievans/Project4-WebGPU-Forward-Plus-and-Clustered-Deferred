@@ -36,11 +36,8 @@ export class Lights {
     clusteringComputeBindGroup: GPUBindGroup;
     clusteringComputePipeline: GPUComputePipeline;
     
-    static readonly numFloatsPerCluster = 8;
-    static readonly widthDiv = 16; // TODO values
-    static readonly heightDiv = 9;
-    static readonly depthDiv = 32;
-    clusterArray = new Float32Array(Lights.widthDiv * Lights.heightDiv * Lights.depthDiv * Lights.numFloatsPerCluster);
+    static readonly numFloatsPerCluster = shaders.constants.maxLightsPerCluster + 1; // TODO right?
+    clusterArray = new Float32Array(shaders.constants.clustersDivX * shaders.constants.clustersDivY * shaders.constants.clustersDivZ * Lights.numFloatsPerCluster);
     clusterDataBuffer: GPUBuffer;
 
     constructor(camera: Camera) {
@@ -109,7 +106,7 @@ export class Lights {
         // TODO-2: initialize layouts, pipelines, textures, etc. needed for light clustering here
         this.clusterDataBuffer = device.createBuffer({
             label: "clusters",
-            size: 32 + this.lightsArray.byteLength, // TODO right size?
+            size: this.clusterArray.byteLength, // TODO right size?; think remove +16 and have # clusters from constants instead?
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
         });
         this.clusteringComputeBindGroupLayout = device.createBindGroupLayout({
@@ -124,13 +121,18 @@ export class Lights {
                     binding: 1,
                     visibility: GPUShaderStage.COMPUTE,
                     buffer: { type: "storage" }
-                }
+                },
+                {
+                    binding: 2,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: { type: "uniform" }
+                },
             ]
         });
 
         this.clusteringComputeBindGroup = device.createBindGroup({
             label: "clustering compute bind group",
-            layout: this.moveLightsComputeBindGroupLayout,
+            layout: this.clusteringComputeBindGroupLayout,
             entries: [
                 {
                     binding: 0,
@@ -139,7 +141,11 @@ export class Lights {
                 {
                     binding: 1,
                     resource: { buffer: this.clusterDataBuffer }
-                }
+                },
+                {
+                    binding: 2,
+                    resource: { buffer: this.camera.uniformsBuffer }
+                },
             ]
         });
 
@@ -182,8 +188,8 @@ export class Lights {
 
         computePass.setBindGroup(0, this.clusteringComputeBindGroup);
 
-        const workgroupCount = Math.ceil(Lights.widthDiv * Lights.heightDiv * Lights.depthDiv / shaders.constants.clustersWorkgroupSize); // TODO
-        computePass.dispatchWorkgroups(workgroupCount);
+        // const workgroupCount = Math.ceil(Lights.widthDiv * Lights.heightDiv * Lights.depthDiv / shaders.constants.clustersWorkgroupSize); // TODO
+        computePass.dispatchWorkgroups(shaders.constants.clustersWorkgroupX, shaders.constants.clustersWorkgroupY, shaders.constants.clustersWorkgroupZ); // TODO pass in 3 dimensions?
 
         computePass.end();
 

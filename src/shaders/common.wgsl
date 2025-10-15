@@ -12,23 +12,26 @@ struct LightSet {
 
 // TODO-2: you may want to create a ClusterSet struct similar to LightSet
 struct Cluster {
-    minPoint: vec4f,
-    maxPoint: vec4f
+    numLights: u32,
+    lights: array<u32, ${maxLightsPerCluster}> // TODO might need to hardcode also to work on github?
 }
 
 struct ClusterSet {
-    widthDiv: u32,
-    heightDiv: u32,
-    depthDiv: u32,
+    // divisions: vec3u,
     // TODO or just store number of clusters total?
     // TODO near and far clip plane in here?
-    clusters: array<Cluster>
+    clusters: array<Cluster, ${clustersDivX} * ${clustersDivY} * ${clustersDivZ}>
 
 }
 
 struct CameraUniforms {
     // TODO-1.3: add an entry for the view proj mat (of type mat4x4f)
-    viewProjMat: mat4x4f
+    viewProjMat: mat4x4f,
+    invProjMat: mat4x4f,
+    nearClip: f32,
+    farClip: f32,
+    screenWidth: u32,
+    screenHeight: u32
 }
 
 // CHECKITOUT: this special attenuation function ensures lights don't affect geometry outside the maximum light radius

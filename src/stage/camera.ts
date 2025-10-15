@@ -3,15 +3,36 @@ import { toRadians } from "../math_util";
 import { device, canvas, fovYDegrees, aspectRatio } from "../renderer";
 
 class CameraUniforms {
-    readonly buffer = new ArrayBuffer(16 * 4);
+    readonly buffer = new ArrayBuffer((32 + 4) * 4);
     private readonly floatView = new Float32Array(this.buffer);
+    private readonly floatInvProj = new Float32Array(this.buffer, 16 * 4);
+    private readonly floatClipPlanes = new Float32Array(this.buffer, 32 * 4);
+    private readonly intDimensions = new Uint32Array(this.buffer, 34 * 4);
 
     set viewProjMat(mat: Float32Array) {
         // TODO-1.1: set the first 16 elements of `this.floatView` to the input `mat`
         this.floatView.set(mat.subarray(0,16)); // TODO make sure this gets length/offset right
     }
 
+    
     // TODO-2: add extra functions to set values needed for light clustering here
+    set invProjMat(mat: Float32Array) {
+        this.floatInvProj.set(mat.subarray(0,16));
+    }
+
+    // TODO add near clip, far clip, screen dimensions?
+    set nearClip(data: number) {
+        this.floatClipPlanes[0] = data;
+    }
+    set farClip(data: number) {
+        this.floatClipPlanes[1] = data;
+    }
+    set screenWidth(data: number) {
+        this.intDimensions[0] = data;
+    }
+    set screenHeight(data: number) {
+        this.intDimensions[1] = data;
+    }
 }
 
 export class Camera {
@@ -19,6 +40,7 @@ export class Camera {
     uniformsBuffer: GPUBuffer;
 
     projMat: Mat4 = mat4.create();
+    invProjMat: Mat4 = mat4.create();
     cameraPos: Vec3 = vec3.create(-7, 2, 0);
     cameraFront: Vec3 = vec3.create(0, 0, -1);
     cameraUp: Vec3 = vec3.create(0, 1, 0);
@@ -45,6 +67,7 @@ export class Camera {
         });
 
         this.projMat = mat4.perspective(toRadians(fovYDegrees), aspectRatio, Camera.nearPlane, Camera.farPlane);
+        this.invProjMat = mat4.inverse(this.projMat);
 
         this.rotateCamera(0, 0); // set initial camera vectors
 
@@ -135,6 +158,11 @@ export class Camera {
         const viewProjMat = mat4.mul(this.projMat, viewMat);
         // TODO-1.1: set `this.uniforms.viewProjMat` to the newly calculated view proj mat
         this.uniforms.viewProjMat = viewProjMat; // TODO is this just assignment or do I need a .set?
+        this.uniforms.invProjMat = this.invProjMat;
+        this.uniforms.nearClip = Camera.nearPlane;
+        this.uniforms.farClip = Camera.farPlane;
+        this.uniforms.screenHeight = canvas.height;
+        this.uniforms.screenWidth = canvas.width;
 
         // TODO-2: write to extra buffers needed for light clustering here
 
