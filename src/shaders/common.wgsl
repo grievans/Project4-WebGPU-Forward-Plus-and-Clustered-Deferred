@@ -39,7 +39,7 @@ struct CameraUniforms {
 fn rangeAttenuation(distance: f32) -> f32 {
     // return clamp(1.f - pow(distance / ${lightRadius}, 4.f), 0.f, 1.f) / (distance * distance);
     // TODO: lightRadius becomes undefined when on version deployed to github, so hardcoding value for now?
-    let halfDist = distance / 2.f; // doesn't seem to matter either way really but leaving this way for now;
+    let halfDist = distance / ${lightRadius}; // doesn't seem to matter either way really but leaving this way for now;
     let hD2 = halfDist * halfDist;
     return clamp(1.f - hD2 * hD2, 0.f, 1.f) / (distance * distance); 
     // return clamp(1.f - pow(distance / 2.f, 4.f), 0.f, 1.f) / (distance * distance); 
