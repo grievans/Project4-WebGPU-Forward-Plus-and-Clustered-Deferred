@@ -32,10 +32,10 @@ export const constants = {
     clustersWorkgroupX: 8,
     clustersWorkgroupY: 4,
     clustersWorkgroupZ: 8,
-    clustersDivX: 16,
-    clustersDivY: 9,
+    clustersDivX: 32,
+    clustersDivY: 18,
     clustersDivZ: 32,
-    maxLightsPerCluster: 1024,
+    maxLightsPerCluster: 512,
 
 
     lightRadius: 2
