@@ -43,6 +43,8 @@ fn screenToView(screenPos : vec4f) -> vec4f{
     return viewPos;
 }
 
+
+
 // fn testSphereAABB(u32 ) // might just do in main since only need one call
 
 
@@ -61,8 +63,8 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
     let maxPointViewSpace = screenToView(maxPointScreenSpace).xyz;
     let minPointViewSpace = screenToView(minPointScreenSpace).xyz;
 
-    let tileNear = -camera.nearClip * pow(camera.farClip / camera.nearClip, f32(clusterIdx.z) / f32(clustersDivZ));
-    let tileFar = -camera.nearClip * pow(camera.farClip / camera.nearClip, f32(clusterIdx.z + 1) / f32(clustersDivZ));
+    let tileNear = -camera.nearClip * pow(camera.farClip / camera.nearClip, f32(clusterIdx.z) / f32(${clustersDivZ}));
+    let tileFar = -camera.nearClip * pow(camera.farClip / camera.nearClip, f32(clusterIdx.z + 1) / f32(${clustersDivZ}));
 
     let minPointNear = minPointViewSpace * (tileNear / minPointViewSpace.z);
     let minPointFar = minPointViewSpace * (tileFar / minPointViewSpace.z);
@@ -77,11 +79,24 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
 
     // note compared to articles linked in recitation that we're skipping the finding active clusters step here since not doing a depth prepass
 
+    let clusterSetIdx = clusterIdx.x + clusterIdx.y * ${clustersDivX} + clusterIdx.z * ${clustersDivX} * ${clustersDivY};
+    // clusterSet.clusters[clusterSetIdx].numLights = 0;
 
-    clusterSet[clusterIdx.x + clusterIdx.y * ${clustersDivX} + clusterIdx.z * ${clustersDivX} * ${clustersDivY}].numLights = 0;
+    // const size lights so can precalc
+    const radiusSquared = ${lightRadius} * ${lightRadius};
+    var numLights : u32 = 0;
+    for (var i : u32 = 0; i < lightSet.numLights; i++) {
+        // squared distance reference: https://www.pbr-book.org/4ed/Geometry_and_Transformations/Bounding_Boxes
+        let center = (camera.viewMat * vec4f(lightSet.lights[i].pos,1.f)).xyz;
+        let disp: vec3f = max(vec3f(0.f), max(minPointAABB - center, center - maxPointAABB));
+        let squaredDistance = dot(disp, disp);
+        if (squaredDistance < radiusSquared) {
+            clusterSet.clusters[clusterSetIdx].lights[numLights] = i;
+            numLights++;
+            
 
-    for (var i = 0; i < lightSet.numLights; ++i) {
-        // lightSet.lights[i] // TODO AABB sphere test
+        }
     }
+    clusterSet.clusters[clusterSetIdx].numLights = numLights;
 
 }

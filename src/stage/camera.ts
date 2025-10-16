@@ -3,11 +3,12 @@ import { toRadians } from "../math_util";
 import { device, canvas, fovYDegrees, aspectRatio } from "../renderer";
 
 class CameraUniforms {
-    readonly buffer = new ArrayBuffer((32 + 4) * 4);
+    readonly buffer = new ArrayBuffer((48 + 4) * 4);
     private readonly floatView = new Float32Array(this.buffer);
-    private readonly floatInvProj = new Float32Array(this.buffer, 16 * 4);
-    private readonly floatClipPlanes = new Float32Array(this.buffer, 32 * 4);
-    private readonly intDimensions = new Uint32Array(this.buffer, 34 * 4);
+    private readonly floatViewMat = new Float32Array(this.buffer, 16 * 4);
+    private readonly floatInvProj = new Float32Array(this.buffer, 32 * 4);
+    private readonly floatClipPlanes = new Float32Array(this.buffer, 48 * 4);
+    private readonly intDimensions = new Uint32Array(this.buffer, 50 * 4);
 
     set viewProjMat(mat: Float32Array) {
         // TODO-1.1: set the first 16 elements of `this.floatView` to the input `mat`
@@ -16,6 +17,9 @@ class CameraUniforms {
 
     
     // TODO-2: add extra functions to set values needed for light clustering here
+    set viewMat(mat: Float32Array) {
+        this.floatViewMat.set(mat.subarray(0,16));
+    }
     set invProjMat(mat: Float32Array) {
         this.floatInvProj.set(mat.subarray(0,16));
     }
@@ -158,13 +162,14 @@ export class Camera {
         const viewProjMat = mat4.mul(this.projMat, viewMat);
         // TODO-1.1: set `this.uniforms.viewProjMat` to the newly calculated view proj mat
         this.uniforms.viewProjMat = viewProjMat; // TODO is this just assignment or do I need a .set?
+        
+        // TODO-2: write to extra buffers needed for light clustering here
+        this.uniforms.viewMat = viewMat; // TODO is this just assignment or do I need a .set?
         this.uniforms.invProjMat = this.invProjMat;
         this.uniforms.nearClip = Camera.nearPlane;
         this.uniforms.farClip = Camera.farPlane;
         this.uniforms.screenHeight = canvas.height;
         this.uniforms.screenWidth = canvas.width;
-
-        // TODO-2: write to extra buffers needed for light clustering here
 
         // TODO-1.1: upload `this.uniforms.buffer` (host side) to `this.uniformsBuffer` (device side)
         // check `lights.ts` for examples of using `device.queue.writeBuffer()`
