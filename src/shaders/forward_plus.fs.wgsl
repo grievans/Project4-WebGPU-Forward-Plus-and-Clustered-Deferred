@@ -30,12 +30,13 @@ struct FragmentInput
 {
     @location(0) pos: vec3f,
     @location(1) nor: vec3f,
-    @location(2) uv: vec2f
+    @location(2) uv: vec2f,
+    @builtin(position) fragPos: vec4f
 }
-
 fn getDepthSlice(zPos : f32) -> u32 {
     // TODO precalculate parts of this?
-    return u32(log(zPos) * ${clustersDivZ} / log(camera.farClip / camera.nearClip) - ${clustersDivZ} * log(camera.nearClip) / log(camera.farClip/camera.nearClip));
+    return u32((log(zPos) -  log(camera.nearClip)) * ${clustersDivZ} / log(camera.farClip / camera.nearClip));
+    // return u32(log(zPos) * ${clustersDivZ} / log(camera.farClip / camera.nearClip) - ${clustersDivZ} * log(camera.nearClip) / log(camera.farClip/camera.nearClip));
 }
 
 @fragment
@@ -46,19 +47,39 @@ fn main(in: FragmentInput) -> @location(0) vec4f
         discard;
     }
     
-    var viewPos = camera.viewProjMat * vec4(in.pos,1);
+    // var viewPos = camera.viewProjMat * vec4(in.pos,1);
+    // var viewPos = vec4(in.pos,1);
+    let viewPos = in.fragPos / in.fragPos.w; 
+    // var viewPos = vec4(fragPos,1);
     // TODO <-----
-    viewPos /= viewPos.w;
+    // viewPos /= viewPos.w;
     // let scaledDepth = -camera.nearClip * pow(camera.farClip / camera.nearClip, viewPos.z);
     let sliceZ = getDepthSlice(viewPos.z);
-    if (sliceZ == 0) { 
+    // if (sliceZ == 0) { 
         // return vec4(1.f,0.f,0.f,1.f);
-    }
-    return vec4(f32(sliceZ) / f32(${clustersDivZ}), 0, 0, 1);
+    // }
+    
+    // const colors = array<vec3f,8>(vec3f(1.f,0.f,0.f), vec3f(0.f,1.f,0.f), vec3f(0.f,0.f,1.f), vec3f(1.f,1.f,0.f), vec3f(1.f,0.f,1.f), vec3f(0.f,1.f,1.f), vec3f(1.f,1.f,1.f), vec3f(0.5,0.5,0.5));
+    // return vec4(colors[sliceZ % 8], 1);
+    // return vec4(f32(sliceZ) / f32(${clustersDivZ}), 0, 0, 1);
+    let tileSizePxX = f32(camera.screenWidth) / ${clustersDivX}; // TODO handle dimensions separately for non-square?
+    let tileSizePxY = f32(camera.screenHeight) / ${clustersDivY};
+    let divPixSpace = in.fragPos.xy / vec2f(tileSizePxX, tileSizePxY);
+    let clusterIdx = vec3u(vec2u(divPixSpace),sliceZ);
+    // return vec4(f32(clusterIdx.x) / f32(${clustersDivX}), f32(clusterIdx.y) / f32(${clustersDivY}), f32(clusterIdx.z) / f32(${clustersDivZ}), 1);
+    let clusterSetIdx = clusterIdx.x + clusterIdx.y * ${clustersDivX} + clusterIdx.z * ${clustersDivX} * ${clustersDivY};
 
+
+
+
+    let curCluster = clusterSet.clusters[clusterSetIdx];
+    let nLights = curCluster.numLights;
+    let lightIndices = curCluster.lights;
     var totalLightContrib = vec3f(0, 0, 0);
-    for (var lightIdx = 0u; lightIdx < lightSet.numLights; lightIdx++) {
-        let light = lightSet.lights[lightIdx];
+    // TODO I think working but running badly; will test on another computer
+    // return vec4f(f32(nLights) / 50.f, f32(nLights) / 50.f, f32(nLights) / 50.f, 1.f);
+    for (var lightIdx = 0u; lightIdx < nLights; lightIdx++) {
+        let light = lightSet.lights[lightIndices[lightIdx]];
         totalLightContrib += calculateLightContrib(light, in.pos, normalize(in.nor));
     }
 

@@ -56,9 +56,10 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
         return;
     }
 
-    const tileSizePx = 32.0; // TODO get actual val--pass in dimensions? can vary w/ window so not just constant
-    let maxPointScreenSpace = vec4f((vec2f(clusterIdx.xy) + 1.0) * tileSizePx, -1.0, 1.0);
-    let minPointScreenSpace = vec4f(vec2f(clusterIdx.xy) * tileSizePx, -1.0, 1.0);
+    let tileSizePxX = f32(camera.screenWidth) / ${clustersDivX}; // TODO handle dimensions separately for non-square?
+    let tileSizePxY = f32(camera.screenHeight) / ${clustersDivY};
+    let maxPointScreenSpace = vec4f((vec2f(clusterIdx.xy) + 1.0) * vec2f(tileSizePxX,tileSizePxY), -1.0, 1.0);
+    let minPointScreenSpace = vec4f(vec2f(clusterIdx.xy) * vec2f(tileSizePxX,tileSizePxY), -1.0, 1.0);
 
     let maxPointViewSpace = screenToView(maxPointScreenSpace).xyz;
     let minPointViewSpace = screenToView(minPointScreenSpace).xyz;
@@ -94,7 +95,9 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
             clusterSet.clusters[clusterSetIdx].lights[numLights] = i;
             numLights++;
             
-
+            if (numLights >= ${maxLightsPerCluster}) {
+                break;
+            }
         }
     }
     clusterSet.clusters[clusterSetIdx].numLights = numLights;
