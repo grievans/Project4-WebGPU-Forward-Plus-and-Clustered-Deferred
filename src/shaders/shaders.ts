@@ -28,7 +28,6 @@ export const constants = {
     bindGroup_model: 1,
     bindGroup_material: 2,
 
-    lightRadius: 2,
     moveLightsWorkgroupSize: 128,
     clustersWorkgroupX: 8,
     clustersWorkgroupY: 4,
@@ -40,9 +39,10 @@ export const constants = {
     // TODO figure out proper numbers for these I think.
     // for 5000 lights 512 lights per cluster does cause some artifacts in particular areas so can notice when lighting really dense; upping causes worse performance some though of course
     // still better than naive for 5000 lights though even with 1024
-
-
     
+    
+    
+    lightRadius: 2 // can't be recognized by githup deploy for some reason /shrug
 };
 
 // =================================
