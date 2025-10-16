@@ -35,7 +35,7 @@ export const constants = {
     clustersDivX: 16,
     clustersDivY: 9,
     clustersDivZ: 32,
-    maxLightsPerCluster: 512,
+    maxLightsPerCluster: 1023, // TODO do I actually want 1 less than multiple given have integer too?
 
 
     lightRadius: 2
