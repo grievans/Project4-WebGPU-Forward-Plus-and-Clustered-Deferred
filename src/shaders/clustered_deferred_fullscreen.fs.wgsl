@@ -67,14 +67,14 @@ fn main(in: FragmentInput) -> @location(0) vec4f
     let diffuseColor = textureLoad(albedoTex, vec2u(in.fragPos.xy), 0).xyz;
     let normal = normalize(textureLoad(norTex, vec2u(in.fragPos.xy), 0).xyz);
 
-    let curCluster = clusterSet.clusters[clusterSetIdx];
-    let nLights = curCluster.numLights;
-    let lightIndices = curCluster.lights;
+    // let curCluster = clusterSet.clusters[clusterSetIdx];
+    let nLights = clusterSet.clusters[clusterSetIdx].numLights;
+    // let lightIndices = curCluster.lights;
     var totalLightContrib = vec3f(0, 0, 0);
     // // TODO I think working but running badly; will test on another computer
     // // return vec4f(f32(nLights) / 50.f, f32(nLights) / 50.f, f32(nLights) / 50.f, 1.f);
     for (var lightIdx = 0u; lightIdx < nLights; lightIdx++) {
-        let light = lightSet.lights[lightIndices[lightIdx]];
+        let light = lightSet.lights[clusterSet.clusters[clusterSetIdx].lights[lightIdx]];
         totalLightContrib += calculateLightContrib(light, pos, normal);
     }
 

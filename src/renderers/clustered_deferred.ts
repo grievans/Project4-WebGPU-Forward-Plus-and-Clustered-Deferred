@@ -108,7 +108,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
         this.depthTexture = renderer.device.createTexture({
             size: [renderer.canvas.width, renderer.canvas.height],
             format: "depth24plus",
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+            usage: GPUTextureUsage.RENDER_ATTACHMENT
         });
         this.depthTextureView = this.depthTexture.createView();
 
@@ -121,7 +121,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
 
         this.albedoTexture = renderer.device.createTexture({
             size: [renderer.canvas.width, renderer.canvas.height],
-            format: "rgba16float",
+            format: "rgba8unorm",
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
         });
         this.albedoTextureView = this.albedoTexture.createView();
@@ -202,7 +202,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 }),
                 targets: [
                     {
-                        format: "rgba16float",
+                        format: "rgba8unorm",
                     },
                     {
                         format: "rgba16float",

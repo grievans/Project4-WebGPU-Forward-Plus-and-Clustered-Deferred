@@ -113,9 +113,11 @@ export class ForwardPlusRenderer extends renderer.Renderer {
         // - run the main rendering pass, using the computed clusters for efficient lighting
         
 
+        // const encoder1 = renderer.device.createCommandEncoder();
         const encoder = renderer.device.createCommandEncoder();
-
+        
         this.lights.doLightClustering(encoder);
+        // const commands1 = encoder1.finish();
 
         const canvasTextureView = renderer.context.getCurrentTexture().createView();
 

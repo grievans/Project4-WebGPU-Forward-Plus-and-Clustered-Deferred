@@ -115,7 +115,7 @@ export class Lights {
                 { // lightSet
                     binding: 0,
                     visibility: GPUShaderStage.COMPUTE,
-                    buffer: { type: "storage" }
+                    buffer: { type: "read-only-storage" }
                 },
                 {
                     binding: 1,
@@ -189,7 +189,10 @@ export class Lights {
         computePass.setBindGroup(0, this.clusteringComputeBindGroup);
 
         // const workgroupCount = Math.ceil(Lights.widthDiv * Lights.heightDiv * Lights.depthDiv / shaders.constants.clustersWorkgroupSize); // TODO
-        computePass.dispatchWorkgroups(shaders.constants.clustersWorkgroupX, shaders.constants.clustersWorkgroupY, shaders.constants.clustersWorkgroupZ); // TODO pass in 3 dimensions?
+        const workgroupCountX = Math.ceil(shaders.constants.clustersDivX / shaders.constants.clustersWorkgroupX);
+        const workgroupCountY = Math.ceil(shaders.constants.clustersDivY / shaders.constants.clustersWorkgroupY);
+        const workgroupCountZ = Math.ceil(shaders.constants.clustersDivZ / shaders.constants.clustersWorkgroupZ);
+        computePass.dispatchWorkgroups(workgroupCountX, workgroupCountY, workgroupCountZ);
 
         computePass.end();
 

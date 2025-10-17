@@ -46,7 +46,6 @@ fn main(in: FragmentInput) -> @location(0) vec4f
     if (diffuseColor.a < 0.5f) {
         discard;
     }
-    
     // var viewPos = camera.viewProjMat * vec4(in.pos,1);
     // var viewPos = vec4(in.pos,1);
     let viewPos = in.fragPos / in.fragPos.w;
@@ -77,14 +76,12 @@ fn main(in: FragmentInput) -> @location(0) vec4f
 
 
 
-    let curCluster = clusterSet.clusters[clusterSetIdx];
-    let nLights = curCluster.numLights;
-    let lightIndices = curCluster.lights;
+    let nLights = clusterSet.clusters[clusterSetIdx].numLights;
     var totalLightContrib = vec3f(0, 0, 0);
     // TODO I think working but running badly; will test on another computer
-    // return vec4f(f32(nLights) / 50.f, f32(nLights) / 50.f, f32(nLights) / 50.f, 1.f);
+//    return vec4f(f32(nLights) / 50.f, f32(nLights) / 50.f, f32(nLights) / 50.f, 1.f);
     for (var lightIdx = 0u; lightIdx < nLights; lightIdx++) {
-        let light = lightSet.lights[lightIndices[lightIdx]];
+        let light = lightSet.lights[clusterSet.clusters[clusterSetIdx].lights[lightIdx]];
         totalLightContrib += calculateLightContrib(light, in.pos, normalize(in.nor));
     }
 

@@ -1,7 +1,7 @@
 // TODO-2: implement the light clustering compute shader
 // TODO I'm uncertain if this ought to be two passes? they describe it as such but not sure if we're doing any sort of excising of clusters between them?
 
-@group(${bindGroup_scene}) @binding(0) var<storage, read_write> lightSet: LightSet;
+@group(${bindGroup_scene}) @binding(0) var<storage> lightSet: LightSet;
 @group(${bindGroup_scene}) @binding(1) var<storage, read_write> clusterSet: ClusterSet;
 @group(${bindGroup_scene}) @binding(2) var<uniform> camera: CameraUniforms; 
 
