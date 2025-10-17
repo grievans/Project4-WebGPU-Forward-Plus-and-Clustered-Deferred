@@ -83,8 +83,8 @@ fn main(@builtin(global_invocation_id) globalIdx: vec3u) {
     let clusterSetIdx = clusterIdx.x + clusterIdx.y * ${clustersDivX} + clusterIdx.z * ${clustersDivX} * ${clustersDivY};
     // clusterSet.clusters[clusterSetIdx].numLights = 0;
 
-    // const size lights so can precalc
-    const radiusSquared = 4.f;
+    // const size lights so can precalc 
+    const radiusSquared = 4.f; // <- need to do this way (hardcoding) to deploy for some reason
     // const radiusSquared = ${lightRadius} * ${lightRadius};
     var numLights : u32 = 0;
     for (var i : u32 = 0; i < lightSet.numLights; i++) {
