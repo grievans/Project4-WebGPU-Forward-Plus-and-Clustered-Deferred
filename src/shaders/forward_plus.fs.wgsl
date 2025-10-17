@@ -49,8 +49,13 @@ fn main(in: FragmentInput) -> @location(0) vec4f
     
     // var viewPos = camera.viewProjMat * vec4(in.pos,1);
     // var viewPos = vec4(in.pos,1);
-    let viewPos = in.fragPos / in.fragPos.w; 
+    let viewPos = in.fragPos / in.fragPos.w;
+    // via https://www.w3.org/TR/WGSL/#built-in-values-position:
+    //  "fp.w is the perspective divisor for the fragment, which is the interpolation of 1.0 ÷ vertex_w, where vertex_w is the w component of the position output of the vertex shader."
+    // so that implies the inverse of what w I thought it was? but the way it is now seems to work correctly
+
     // var viewPos = vec4(fragPos,1);
+    // return vec4(viewPos.z, 0, 0, 1);
     // TODO <-----
     // viewPos /= viewPos.w;
     // let scaledDepth = -camera.nearClip * pow(camera.farClip / camera.nearClip, viewPos.z);

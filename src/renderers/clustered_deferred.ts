@@ -16,6 +16,9 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
     depthTexture: GPUTexture;
     depthTextureView: GPUTextureView;
 
+    // depth2Texture: GPUTexture;
+    // depth2TextureView: GPUTextureView;
+
     albedoTexture: GPUTexture;
     albedoTextureView: GPUTextureView;
 
@@ -91,7 +94,14 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                     texture: {
                         sampleType: "float"
                     }
-                }
+                },
+                // { // depth
+                //     binding: 5,
+                //     visibility: GPUShaderStage.FRAGMENT,
+                //     texture: {
+                //         sampleType: "unfilterable-float"
+                //     }
+                // }
             ]
         });
 
@@ -101,6 +111,14 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
         });
         this.depthTextureView = this.depthTexture.createView();
+
+        // this.depth2Texture = renderer.device.createTexture({
+        //     size: [renderer.canvas.width, renderer.canvas.height],
+        //     format: "depth24plus",
+        //     usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+        // });
+        // this.depth2TextureView = this.depth2Texture.createView();
+
         this.albedoTexture = renderer.device.createTexture({
             size: [renderer.canvas.width, renderer.canvas.height],
             format: "rgba16float",
@@ -146,6 +164,10 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                     binding: 4,
                     resource: this.norTextureView
                 },
+                // {
+                //     binding: 5,
+                //     resource: this.depthTextureView
+                // },
 
             ]
         });
@@ -256,7 +278,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 },
                 {
                     view: this.worldPosTextureView,
-                    clearValue: [0, 0, 0, 1],
+                    clearValue: [0, 0, 0, 0],
                     loadOp: "clear",
                     storeOp: "store"
                 },
@@ -302,11 +324,12 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 }
             ],
             depthStencilAttachment: {
+                // view: this.depth2TextureView,
                 view: this.depthTextureView,
                 depthClearValue: 1.0,
                 depthLoadOp: "clear",
                 depthStoreOp: "store"
-            } // TODO maybe can delete
+            } 
         });
         secondRenderPass.setPipeline(this.secondPipeline);
 
