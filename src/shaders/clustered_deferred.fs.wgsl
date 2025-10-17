@@ -15,7 +15,7 @@ struct FragmentInput
     @location(0) pos: vec3f,
     @location(1) nor: vec3f,
     @location(2) uv: vec2f,
-    @builtin(position) fragPos: vec4f
+    // @builtin(position) fragPos: vec4f
 }
 
 struct FragmentOutput
