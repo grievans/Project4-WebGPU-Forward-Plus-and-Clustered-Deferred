@@ -30,7 +30,7 @@ fn main(in: FragmentInput) -> @location(0) vec4f
     // return textureLoad(albedoTex, vec2u(in.fragPos.xy), 0);
     // return textureLoad(posTex, vec2u(in.fragPos.xy), 0);
     // return vec4f((textureLoad(norTex, vec2u(in.fragPos.xy), 0).xyz + 1.f) * 0.5f, 1.f);
-    // return vec4f(vec3f((1.f - textureLoad(depthTex, vec2u(in.fragPos.xy), 0).x )* 50.f), 1.f);
+    // UNUSED: // return vec4f(vec3f((1.f - textureLoad(depthTex, vec2u(in.fragPos.xy), 0).x )* 50.f), 1.f);
 
 
 

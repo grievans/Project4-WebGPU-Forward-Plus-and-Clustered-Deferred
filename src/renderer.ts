@@ -41,7 +41,13 @@ export async function initWebGPU() {
         throw new Error("no appropriate GPUAdapter found");
     }
 
-    device = await adapter.requestDevice();
+    // const hasTimestamps = adapter.features.has("timestamp-query");
+    // if (hasTimestamps) {
+    //     device = await adapter.requestDevice({requiredFeatures: ["timestamp-query"]});
+
+    // } else {
+        device = await adapter.requestDevice();
+    // }
 
     context = canvas.getContext("webgpu")!;
     canvasFormat = navigator.gpu.getPreferredCanvasFormat();
@@ -124,10 +130,13 @@ export abstract class Renderer {
         cancelAnimationFrame(this.frameRequestId);
     }
 
+    // private sumTime: number = 0;
+    // private frames: number = 0;
+
     protected abstract draw(): void;
 
     // CHECKITOUT: this is the main rendering loop
-    private onFrame(time: number) {
+    private async onFrame(time: number) {
         if (this.prevTime == 0) {
             this.prevTime = time;
         }
@@ -136,13 +145,19 @@ export abstract class Renderer {
         this.camera.onFrame(deltaTime);
         this.lights.onFrame(time);
 
+        // need added awaits to actually see ms output
+        const timeMode = false;
         this.stats.begin();
+        
 
         this.draw();
 
+        if (timeMode) {
+            await device.queue.onSubmittedWorkDone();
+        }
         this.stats.end();
-
         this.prevTime = time;
         this.frameRequestId = requestAnimationFrame((t) => this.onFrame(t));
+
     }
 }

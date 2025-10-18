@@ -170,6 +170,7 @@ export class Camera {
         this.uniforms.farClip = Camera.farPlane;
         this.uniforms.screenHeight = canvas.height;
         this.uniforms.screenWidth = canvas.width;
+        // console.log(canvas.width + " " + canvas.height);
 
         // TODO-1.1: upload `this.uniforms.buffer` (host side) to `this.uniformsBuffer` (device side)
         // check `lights.ts` for examples of using `device.queue.writeBuffer()`

@@ -30,13 +30,13 @@ export const constants = {
     bindGroup_second: 3,
 
     moveLightsWorkgroupSize: 128,
-    clustersWorkgroupX: 8,
+    clustersWorkgroupX: 8, // cap 8*4*8 = 256
     clustersWorkgroupY: 4,
     clustersWorkgroupZ: 8,
     clustersDivX: 16,
     clustersDivY: 8,
     clustersDivZ: 32,
-    maxLightsPerCluster: 1023, // TODO do I actually want 1 less than multiple given have integer too?
+    maxLightsPerCluster: 2047, // TODO do I actually want 1 less than multiple given have integer too?
     // TODO figure out proper numbers for these I think.
     // for 5000 lights 512 lights per cluster does cause some artifacts in particular areas so can notice when lighting really dense; upping causes worse performance some though of course
     // still better than naive for 5000 lights though even with 1024
