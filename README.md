@@ -111,3 +111,4 @@ A factor which significantly impacted performance during development was the acc
 - https://www.aortiz.me/2018/12/21/CG.html#clustered-shading
 - https://takahiroharada.wordpress.com/wp-content/uploads/2015/04/forward_plus.pdf
 - https://hacks.mozilla.org/2014/01/webgl-deferred-shading/
+- https://www.pbr-book.org/4ed/Geometry_and_Transformations/Bounding_Boxes
