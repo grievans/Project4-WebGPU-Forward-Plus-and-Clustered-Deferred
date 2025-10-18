@@ -28,9 +28,46 @@ This project is a WebGPU-based renderer which displays a scene containing a user
 ## Analysis
 <img width="1518" height="938" alt="Screen Shot 2025-10-17 at 11 13 12 PM" src="https://github.com/user-attachments/assets/d9cd5c10-2fa7-4b53-ad47-986593aa8429" />
 
-Both Forward+ and Clustered Deferred appeared to run signficantly faster than the naïve implementation. Even in the case of a single light (not shown above), the naïve implementation appeared to perform at-best equal in speed to the Forward+ implementation, suggesting the added cost of the compute shader to find the cluster bounds and sets of lights is so minor that it outweighs performing the light contribution for even a single light per fragment.
+Both Forward+ and Clustered Deferred appeared to run signficantly faster than the naïve implementation. Even in the case of a single light (not shown above), the naïve implementation appeared to perform at-best equal in speed to the Forward+ implementation, suggesting the added cost of the compute shader to find the cluster bounds and sets of lights is so minor that it outweighs performing the light contribution for even a single light per fragment. The deferred renderer is slightly slower in that very dark case, but increasing the number of lights to 15 already gives faster performance than the naïve (on a much weaker machine than the main one I tested on, naïve takes 23ms for 1 light and 52ms for 15 lights, whereas deferred takes a consistent 47ms for both 1 and 15 lights).
+
+As the number of lights increases the margin in performance compared to the naïve case widens, with Forward+ taking 50ms per frame with 15,000 lights and the naïve method taking 706ms. Clustered Deferred rendering slows down even more gradually than Forward+, keeping a speed of 16ms per frame for 15,000 lights. At least for the hardware tested, Clustered Deferred seemed to be the most performant method in nearly every situation, with it only being slower in the case of very few lights, at which point all of the methods are fast enough that it hardly makes a difference.
 
 <img width="1518" height="937" alt="Screen Shot 2025-10-17 at 11 13 04 PM" src="https://github.com/user-attachments/assets/25306346-eaef-4ae2-a2ea-b96ede094642" />
+
+In either of the cluster-based methods, a tradeoff is present in the maximum number of lights allowed in each cluster. Since the clusters store lights indices in an array in order to track the set of lights affecting that cluster, the number of lights that can illuminate a surface in each cluster is limited by the length allocated for that array. When the number of lights within range of a cluster is greater than this limit, any excess lights will be ignored when shading the fragments within that cluster. Since the set of lights that fall within the cluster bounds varies between adjacent clusters, this can cause visible artifacts as the resulting illumination abruptly jumps in value, as in the video below:
+
+https://github.com/user-attachments/assets/b403ec5b-0304-41c3-9d89-45fa22384763
+
+*Above: 15,000 lights with max 511 lights per cluster*
+
+For a limit of 511 lights per cluster (note: using one less than a power of 2 in order to align our array of cluster structs, where each cluster contains an array of light indices, each an unsigned 32-bit integer, and one 32-bit integer to denote the number of lights used in that array; 511 plus the extra integer to store the count is hence 512), we start seeing these artifacts when populating our scene with around 5,000 lights. Increasing the limit to 1023 lights reduces these artifacts significantly, but as we increase the light count past around 10,000 they can again be seen, though less dramatically than for a smaller maximum:
+
+https://github.com/user-attachments/assets/c6e32f07-946a-489b-853f-57a939179629
+
+*Above: 15,000 lights with max 1023 lights per cluster*
+
+Further increasing the limit to 2047 lights per cluster appears to make the artifacts effectively disappear for even 15,000 lights:
+
+https://github.com/user-attachments/assets/a9a1e595-4f4d-43aa-aff5-b755d4f29144
+
+*Above: 15,000 lights with max 2047 lights per cluster*
+
+Note that even with this high limit there are technically still clusters where the limit is reached. The videos below show the scene rendered as a gradient depending on the number of lights affecting each cluster. For all values below the limit per cluster, we show grayscale tones ranging from black for 0 lights to white for one less than our limit. All clusters at the limit appear instead in red, meaning that these should be areas where such artifacts may appear:
+
+https://github.com/user-attachments/assets/412ad590-6385-4858-acba-08a276d85188
+
+*Above: Debug view of 10,000 lights with max 1023 lights per cluster*
+
+
+https://github.com/user-attachments/assets/1333481f-59ef-493d-8ce9-66d7b7205119
+
+*Above: Debug view of 10,000 lights with max 2047 lights per cluster*
+
+Note though that just because we hit the limit per cluster in some regions, this doesn't necessarily mean the effects of that limit will be visible to the human eye. Many of the lights may have very little influence on the illumination, and with so many lights present the illumination will be so bright that the color of the fragments there will be largely blown out anyways. Hence to the human eye 2047 lights per cluster appears sufficient for 15,000 lights even if we do fail to capture all the lights affecting the cluster in some instances.
+
+Of course, inceasing the limit and the associated array's length does incur some performance detriments as there is more overhead for the reading and writing of this larger memory space, and the fragment shader takes longer as it has more lights it needs to iterate through (but in the cases where it does take longer it is resulting in a more accurately lit result). There is a slowdown as we increase the maximum, but this is not hugely significant—note that for the limits of 511 and 1023 in the Clustered Deferred renderer we actually see the larger size perform slightly faster. I would suspect that this greater speed is not actually indicative of 1023 being a faster option, but rather that it indicates that these configurations perform so similarly that the margin of performance variation between subsequent runs of the same program is greater than the difference caused by changing this limit.
+
+
 <img width="1515" height="936" alt="Screen Shot 2025-10-17 at 11 14 06 PM" src="https://github.com/user-attachments/assets/c9440b97-688d-4db0-a438-7ebe979ff382" />
 <img width="1517" height="937" alt="Screen Shot 2025-10-17 at 11 12 43 PM" src="https://github.com/user-attachments/assets/292a6843-e73e-4e6a-af54-b813ccb1b9e1" />
 
